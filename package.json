@@ -1,0 +1,11 @@
+{
+  "name": "deployable-lambda",
+  "description": "",
+  "version": "0.1.0",
+  "dependencies": {
+    "serverless-pseudo-parameters": "^2.1.0"
+  },
+  "devDependencies": {
+    "serverless-python-requirements": "^3.0.10"
+  }
+}
