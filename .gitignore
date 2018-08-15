@@ -32,5 +32,3 @@ node_modules/**
 # Jetbrains
 .idea
 
-# Sample data
-sample*.json
