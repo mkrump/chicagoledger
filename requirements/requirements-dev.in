@@ -2,3 +2,5 @@
 
 moto
 pytest
+betamax
+betamax_serializers

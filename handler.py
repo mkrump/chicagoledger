@@ -1,50 +1,51 @@
-import json
+import logging
 
-import boto3
-from twython import Twython, TwythonError
-from config import get_secret
+import dateutil
+import requests
+from dateutil.utils import today
+
+from bills import Bills
+from ocd_api import OCDBillsAPI
+from twitter import TwitterBot
+
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+
+session = requests.Session()
+ocd_bills = OCDBillsAPI(session)
+
+bills = Bills()
+bot = TwitterBot()
+
+
+# TODO change date to range
+# Also not sure this query does quite what we want
+# since only getting bills with any
+# action date = 'Query Date' and any action = 'Referred'
+def create_query(max_date):
+    min_date = max_date - dateutil.relativedelta.relativedelta(months=1)
+
+    max_date.strftime("%Y-%m-%d")
+    return {
+        # Rahm Emanuel -> https://ocd.datamade.us/ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca/
+        'ocd-person': 'ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca',
+        'max_date': max_date.strftime("%Y-%m-%d"),
+        'min_date': min_date.strftime("%Y-%m-%d"),
+        'actions': 'Referred',
+    }
 
 
 def call(event, context):
-    bucket, key = unpack_lambda_event(event)
-    introductions = get_contents(bucket, key)
-    tweet_introductions(introductions)
-
-
-def tweet_introductions(introductions):
-    twitter = create_twitter()
-    for introduction in introductions:
-        meeting_date = introduction['Meeting Date']
-        link = introduction['Link']
-        status = "On {date} Rahm introduced {link}".format(date=meeting_date, link=link)
-        twitter.update_status(status=status)
-
-
-def get_contents(original_bucket, original_key):
-    s3_client = boto3.client('s3')
-    event = s3_client.get_object(
-        Bucket=original_bucket,
-        Key=original_key,
+    query_params = create_query(today())
+    introductions = ocd_bills.get_bills(
+        query_params['ocd-person'],
+        query_params['max_date'],
+        query_params['min_date'],
+        query_params['actions'],
     )
-    return json.loads(event['Body'].read())
-
-
-def create_twitter():
-    secret = json.loads(get_secret())
-    consumer_key = secret['twitter-consumer-key']
-    consumer_secret = secret['twitter-consumer-secret']
-    access_token = secret['twitter-access-token']
-    access_secret = secret['twitter-access-secret']
-
-    try:
-        twitter = Twython(consumer_key, consumer_secret, access_token, access_secret)
-        return twitter
-    except TwythonError as e:
-        print(e)
-
-
-def unpack_lambda_event(event):
-    record = event['Records'][0]
-    bucket = record['s3']['bucket']['name']
-    key = record['s3']['object']['key']
-    return bucket, key
+    new_introductions = [introduction for introduction in introductions
+                         if not bills.exists(introduction.identifier)]
+    logger.info("call: {} new introductions".format(len(new_introductions)))
+    bills.insert(new_introductions)
+    if len(introductions) > 0:
+        bot.tweet_introductions(introductions)

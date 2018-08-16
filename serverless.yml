@@ -8,13 +8,16 @@ provider:
   iamRoleStatements:
   -  Effect: "Allow"
      Action:
-       - "s3:GetObject"
-     Resource: "arn:aws:s3:::what-rahm-wants/*"
+       - "dynamodb:GetItem"
+       - "dynamodb:PutItem"
+       - "dynamodb:BatchWriteItem"
+     Resource: "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/bills"
   -  Effect: "Allow"
      Action:
        - "secretsmanager:GetSecretValue"
      Resource:
        - "arn:aws:secretsmanager:#{AWS::Region}:#{AWS::AccountId}:secret:Twitter-2gvVS8"
+
 
 package:
   exclude:
@@ -34,11 +37,22 @@ custom:
 functions:
   tweet:
     handler: handler.call
-    timeout: 60
     events:
-      - s3:
-          bucket: what-rahm-wants
-          event: s3:ObjectCreated:*
-          rules:
-            - prefix: events/
+      - schedule:
+          rate: rate(1 minute)
 
+resources:
+  Resources:
+    UsersDynamoDBTable:
+      Type: 'AWS::DynamoDB::Table'
+      Properties:
+        TableName: bills
+        AttributeDefinitions:
+          - AttributeName: bill_id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: bill_id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 5
+          WriteCapacityUnits: 5
