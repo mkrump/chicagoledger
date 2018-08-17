@@ -1,7 +1,9 @@
 import json
 import logging
+import os
 
 import boto3
+from botocore.exceptions import NoRegionError
 import dateutil
 import requests
 from dateutil.utils import today
@@ -17,7 +19,12 @@ LOGGER.setLevel(logging.INFO)
 REQUESTS_SESSION = requests.Session()
 ocd_bills = BillsEndpoint(REQUESTS_SESSION)
 
-BOTO3_SESSION = boto3.Session(profile_name='default')
+try:
+    BOTO3_SESSION = boto3.Session(profile_name='default')
+except NoRegionError:
+    region = os.environ['AWS_DEFAULT_REGION']
+    BOTO3_SESSION = boto3.Session(region_name=region)
+
 BILLS = Bills(BOTO3_SESSION)
 SECRET = json.loads(config.get_secret(BOTO3_SESSION))
 TWITTER_CREDENTIALS = TwitterCredentials(SECRET['twitter-consumer-key'],
