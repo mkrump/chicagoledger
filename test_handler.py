@@ -38,7 +38,7 @@ def fake_secret(monkeypatch):
 def test_call(mock_get_bills, mock_handler_exists, mock_handler_insert, mock_tweet_introductions, mock_today):
     mock_today.return_value = datetime.datetime(2018, 8, 15)
     mock_get_bills.return_value = example_introductions
-    mock_handler_exists.return_value = True
+    mock_handler_exists.return_value = False
 
     call(None, None)
 

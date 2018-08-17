@@ -47,5 +47,5 @@ def call(event, context):
                          if not bills.exists(introduction.identifier)]
     logger.info("call: {} new introductions".format(len(new_introductions)))
     bills.insert(new_introductions)
-    if len(introductions) > 0:
-        bot.tweet_introductions(introductions)
+    if len(new_introductions) > 0:
+        bot.tweet_introductions(new_introductions)
