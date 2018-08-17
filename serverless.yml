@@ -5,6 +5,7 @@ provider:
   runtime: python3.6
   stage: ${opt:stage, 'dev'}
   region: us-east-1
+  timeout: 60
   iamRoleStatements:
   -  Effect: "Allow"
      Action:
@@ -39,7 +40,7 @@ functions:
     handler: handler.call
     events:
       - schedule:
-          rate: rate(1 minute)
+          rate: rate(1 day)
 
 resources:
   Resources:

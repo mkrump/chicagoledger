@@ -3,9 +3,9 @@ import logging
 import os
 
 import boto3
-from botocore.exceptions import NoRegionError
 import dateutil
 import requests
+from botocore.exceptions import ProfileNotFound
 from dateutil.utils import today
 
 import config
@@ -21,7 +21,7 @@ ocd_bills = BillsEndpoint(REQUESTS_SESSION)
 
 try:
     BOTO3_SESSION = boto3.Session(profile_name='default')
-except NoRegionError:
+except ProfileNotFound:
     region = os.environ['AWS_DEFAULT_REGION']
     BOTO3_SESSION = boto3.Session(region_name=region)
 

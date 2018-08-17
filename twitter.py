@@ -1,3 +1,4 @@
+import logging
 from collections import namedtuple
 
 from twython import Twython, TwythonError
@@ -6,6 +7,9 @@ TwitterCredentials = namedtuple('TwitterCredentials',
                                 ['consumer_key', 'consumer_secret', 'access_token', 'access_secret'])
 
 TWITTER_MAX_CHARS = 280
+
+LOGGER = logging.getLogger()
+LOGGER.setLevel(logging.INFO)
 
 
 class TwitterBot:
@@ -48,7 +52,7 @@ class TwitterClient:
         try:
             self.twitter_client = self.connect(twitter_credentials)
         except TwythonError as e:
-            print(e)
+            LOGGER.info(e)
 
     @staticmethod
     def connect(twitter_credentials):

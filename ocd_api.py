@@ -36,7 +36,7 @@ class BillsEndpoint:
 
     def get_bills(self, person_id, max_date, min_date, description):
         api_response = self._call_bills_api(person_id, max_date, min_date, description)
-        return self.parse_bills(api_response)
+        return self.parse_bills(api_response.json())
 
     @staticmethod
     def parse_bills(bills_json):
