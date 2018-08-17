@@ -1,37 +1,44 @@
+import json
 import logging
 
+import boto3
 import dateutil
 import requests
 from dateutil.utils import today
 
+import config
 from bills import Bills
-from ocd_api import OCDBillsAPI
-from twitter import TwitterBot
+from ocd_api import BillsEndpoint
+from twitter import TwitterBot, TwitterCredentials, TwitterClient
 
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+LOGGER = logging.getLogger()
+LOGGER.setLevel(logging.INFO)
 
-session = requests.Session()
-ocd_bills = OCDBillsAPI(session)
+REQUESTS_SESSION = requests.Session()
+ocd_bills = BillsEndpoint(REQUESTS_SESSION)
 
-bills = Bills()
-bot = TwitterBot()
+BOTO3_SESSION = boto3.Session(profile_name='default')
+BILLS = Bills(BOTO3_SESSION)
+SECRET = json.loads(config.get_secret(BOTO3_SESSION))
+TWITTER_CREDENTIALS = TwitterCredentials(SECRET['twitter-consumer-key'],
+                                         SECRET['twitter-consumer-secret'],
+                                         SECRET['twitter-access-token'],
+                                         SECRET['twitter-access-secret'])
+
+TWITTER_CLIENT = TwitterClient(TWITTER_CREDENTIALS)
+TWITTER_BOT = TwitterBot(TWITTER_CLIENT)
 
 
-# TODO change date to range
-# Also not sure this query does quite what we want
-# since only getting bills with any
-# action date = 'Query Date' and any action = 'Referred'
+# TODO Not sure this query does quite what we want
+# TODO since only getting bills with any
+# TODO action date = 'Query Date' and any action = 'Referred'
 def create_query(max_date):
     min_date = max_date - dateutil.relativedelta.relativedelta(months=1)
-
-    max_date.strftime("%Y-%m-%d")
     return {
-        # Rahm Emanuel -> https://ocd.datamade.us/ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca/
-        'ocd-person': 'ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca',
+        'ocd-person': config.PERSON,
         'max_date': max_date.strftime("%Y-%m-%d"),
         'min_date': min_date.strftime("%Y-%m-%d"),
-        'actions': 'Referred',
+        'actions': config.ACTIONS,
     }
 
 
@@ -44,8 +51,8 @@ def call(event, context):
         query_params['actions'],
     )
     new_introductions = [introduction for introduction in introductions
-                         if not bills.exists(introduction.identifier)]
-    logger.info("call: {} new introductions".format(len(new_introductions)))
-    bills.insert(new_introductions)
+                         if not BILLS.exists(introduction.identifier)]
+    LOGGER.info("call: {} new introductions".format(len(new_introductions)))
+    BILLS.insert(new_introductions)
     if len(new_introductions) > 0:
-        bot.tweet_introductions(new_introductions)
+        TWITTER_BOT.tweet_introductions(new_introductions)

@@ -19,13 +19,13 @@ class Bill:
         return r.url
 
 
-class OCDBillsAPI:
+class BillsEndpoint:
     endpoint = 'https://ocd.datamade.us/bills/'
 
     def __init__(self, session):
         self.session = session
 
-    def _get_bills(self, person_id, max_date, min_date, description):
+    def _call_bills_api(self, person_id, max_date, min_date, description):
         payload = {
             'sponsorships__person_id': person_id,
             'actions__date__lte': max_date,
@@ -35,13 +35,13 @@ class OCDBillsAPI:
         return self.session.get(self.endpoint, params=payload)
 
     def get_bills(self, person_id, max_date, min_date, description):
-        return self.parse_bills(self._get_bills(person_id, max_date, min_date, description))
+        api_response = self._call_bills_api(person_id, max_date, min_date, description)
+        return self.parse_bills(api_response)
 
     @staticmethod
-    def parse_bills(bills_response):
+    def parse_bills(bills_json):
         bills = []
-        bills_response_json = bills_response.json()
-        for bill in bills_response_json['results']:
+        for bill in bills_json['results']:
             b = Bill(bill['identifier'], bill['title'].strip(), bill['classification'])
             bills.append(b)
         return bills

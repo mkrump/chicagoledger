@@ -1,9 +1,6 @@
-import boto3
-
-
 class Bills:
-    def __init__(self):
-        self.bills = boto3.resource('dynamodb', region_name='us-east-1').Table('bills')
+    def __init__(self, boto3_session):
+        self.bills = boto3_session.resource('dynamodb', boto3_session.region_name).Table('bills')
 
     def insert(self, introductions):
         with self.bills.batch_writer() as batch:

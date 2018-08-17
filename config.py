@@ -1,26 +1,30 @@
-import boto3
 from botocore.exceptions import ClientError
 
+# OCD Query params
+# Rahm Emanuel -> https://ocd.datamade.us/ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca/
+PERSON = 'ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca'
+ACTIONS = 'Referred'
 
-def get_secret():
-    secret_name = "Twitter"
-    endpoint_url = "https://secretsmanager.us-east-1.amazonaws.com"
-    region_name = "us-east-1"
+# AWS params
+# .aws/config to use
+# profile is expected to have region
+AWS_PROFILE_NAME = 'default'
+AWS_SECRETSMANAGER_SECRET_NAME = 'Twitter'
 
-    session = boto3.session.Session()
-    client = session.client(
+
+def get_secret(boto3_session):
+    client = boto3_session.client(
         service_name='secretsmanager',
-        region_name=region_name,
-        endpoint_url=endpoint_url
+        region_name=boto3_session.region_name,
     )
 
     try:
         get_secret_value_response = client.get_secret_value(
-            SecretId=secret_name
+            SecretId=AWS_SECRETSMANAGER_SECRET_NAME
         )
     except ClientError as e:
         if e.response['Error']['Code'] == 'ResourceNotFoundException':
-            print("The requested secret " + secret_name + " was not found")
+            print("The requested secret " + AWS_SECRETSMANAGER_SECRET_NAME + " was not found")
         elif e.response['Error']['Code'] == 'InvalidRequestException':
             print("The request was invalid due to:", e)
         elif e.response['Error']['Code'] == 'InvalidParameterException':

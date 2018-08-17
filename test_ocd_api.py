@@ -1,10 +1,21 @@
+import json
+from urllib.parse import urlparse, parse_qs
+
 import betamax
+import mock
 import pytest
 import requests
 from betamax_serializers import pretty_json
-from urllib.parse import urlparse, parse_qs
 
-from ocd_api import Bill, OCDBillsAPI
+from ocd_api import Bill, BillsEndpoint
+
+EXPECTED_ORDINANCE = ['ordinance']
+
+EXPECTED_IDENTIFIER = 'O2018-6138'
+
+EXPECTED_TITLE = 'Fifty-fifth amending agreement with SomerCor 504, Inc. regarding Small Business Improvement Fund ' \
+                 'program increases within Jefferson Park, Lawrence/Pulaski and Lincoln Avenue areas'
+EXPECTED_BILL = Bill(EXPECTED_IDENTIFIER, EXPECTED_TITLE, EXPECTED_ORDINANCE)
 
 
 @pytest.fixture()
@@ -27,13 +38,23 @@ def betamax_session():
     yield session
 
 
-def test_get(betamax_session):
-    api = OCDBillsAPI(betamax_session)
+@mock.patch('ocd_api.BillsEndpoint._call_bills_api')
+@mock.patch('ocd_api.BillsEndpoint.parse_bills')
+def test_get_bills(mock_parse_bills, mock_call_bills_api):
+    api = BillsEndpoint(mock.Mock(requests.Session))
+    api.get_bills('ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca', '2018-08-15', '2018-07-16', 'Referred')
+    assert mock_parse_bills.call_count == 1
+    assert mock_call_bills_api.call_count == 1
 
-    response = api._get_bills('ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca', '2018-08-15', '2018-07-16', 'Referred')
+
+def test_call_bills_api(betamax_session):
+    api = BillsEndpoint(betamax_session)
+
+    response = api._call_bills_api('ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca',
+                                   '2018-08-15', '2018-07-16', 'Referred')
     parsed_url = urlparse(response.url)
-    url = parsed_url._replace(query=None).geturl()
     params = dict(parse_qs(parsed_url.query))
+    url = parsed_url._replace(query=None).geturl()
 
     assert params['actions__date__gte'] == ['2018-07-16']
     assert params['actions__date__lte'] == ['2018-08-15']
@@ -43,19 +64,16 @@ def test_get(betamax_session):
 
 
 def test_parse_bills(betamax_session):
-    api = OCDBillsAPI(betamax_session)
-    expected_title = 'Fifty-fifth amending agreement with SomerCor 504, Inc. regarding Small Business Improvement Fund ' \
-                     'program increases within Jefferson Park, Lawrence/Pulaski and Lincoln Avenue areas'
-    expected_identifier = 'O2018-6138'
-    expected_classification = ['ordinance']
-    expected = Bill(expected_identifier, expected_title, expected_classification)
+    with open('cassettes/bills.json') as f:
+        cassette_json = json.load(f)
+        response_json = json.loads(cassette_json['http_interactions'][0]['response']['body']['string'])
+        api = BillsEndpoint(betamax_session)
 
-    response = api._get_bills('ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca', '2018-08-15', '2018-07-16', 'Referred')
-    bills = api.parse_bills(response)
-    actual = [bill for bill in bills if bill.identifier == expected_identifier][0]
+        bills = api.parse_bills(response_json)
 
-    assert len(bills) == 31
-    assert actual.identifier == expected.identifier
-    assert actual.title == expected.title
-    assert actual.classifications == expected.classifications
-    assert actual.legistar_url == 'http://chicago.legistar.com/gateway.aspx?M=F2&ID=O2018-6138'
+        first_bill = [bill for bill in bills if bill.identifier == EXPECTED_IDENTIFIER][0]
+        assert len(bills) == 31
+        assert first_bill.identifier == EXPECTED_BILL.identifier
+        assert first_bill.title == EXPECTED_BILL.title
+        assert first_bill.classifications == EXPECTED_BILL.classifications
+        assert first_bill.legistar_url == 'http://chicago.legistar.com/gateway.aspx?M=F2&ID=O2018-6138'
