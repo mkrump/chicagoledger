@@ -2,7 +2,7 @@ import datetime
 from unittest.mock import patch
 
 from handler import call
-from ocd_api import Bill
+from ocd_api import Bill, BillsRequestParams
 
 example_introductions = [
     Bill('O2099-1111', 'Make it illegal to put ketchup on hotdogs', ['ordinance']),
@@ -24,8 +24,13 @@ def test_call(mock_get_bills, mock_handler_exists, mock_handler_insert, mock_twe
 
     call(None, None)
 
-    mock_get_bills.assert_called_with('ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca', '2018-08-15', '2018-07-15',
-                                      'Referred')
+    query_params = BillsRequestParams(
+        person_id='ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca',
+        max_date='2018-08-15',
+        min_date='2018-07-15',
+        description='Referred'
+    )
+    mock_get_bills.assert_called_with(query_params)
     mock_handler_exists.assert_any_call(example_introductions[0].identifier)
     mock_handler_exists.assert_any_call(example_introductions[1].identifier)
     mock_handler_insert.assert_called_with(example_introductions)

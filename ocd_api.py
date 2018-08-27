@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from requests import Request
 
 
@@ -19,24 +21,39 @@ class Bill:
         return r.url
 
 
+BillsRequestParams = namedtuple('BillsRequestParams', 'person_id, min_date, max_date, description')
+
+
 class BillsEndpoint:
     endpoint = 'https://ocd.datamade.us/bills/'
 
     def __init__(self, session):
         self.session = session
 
-    def _call_bills_api(self, person_id, max_date, min_date, description):
+    def _call_bills_api(self, bills_request_params, page=1):
         payload = {
-            'sponsorships__person_id': person_id,
-            'actions__date__lte': max_date,
-            'actions__date__gte': min_date,
-            'actions__description': description,
+            'sponsorships__person_id': bills_request_params.person_id,
+            'actions__date__lte': bills_request_params.max_date,
+            'actions__date__gte': bills_request_params.min_date,
+            'actions__description': bills_request_params.description,
+            'page': page,
         }
         return self.session.get(self.endpoint, params=payload)
 
-    def get_bills(self, person_id, max_date, min_date, description):
-        api_response = self._call_bills_api(person_id, max_date, min_date, description)
-        return self.parse_bills(api_response.json())
+    def _page_bills_results(self, bills_request_params):
+        first_page = self._call_bills_api(bills_request_params)
+        yield first_page.json()
+        max_page = first_page.json()['meta']['max_page']
+        for page in range(2, max_page + 1):
+            next_page = self._call_bills_api(bills_request_params, page=page)
+            yield next_page.json()
+
+    def get_bills(self, bills_request_params):
+        bills = []
+        for page in self._page_bills_results(bills_request_params):
+            bill = self.parse_bills(page)
+            bills.extend(bill)
+        return bills
 
     @staticmethod
     def parse_bills(bills_json):

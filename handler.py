@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+from time import sleep
 
 import boto3
 import dateutil
@@ -10,7 +11,7 @@ from dateutil.utils import today
 
 import config
 from bills import Bills
-from ocd_api import BillsEndpoint
+from ocd_api import BillsEndpoint, BillsRequestParams
 from twitter import TwitterBot, TwitterCredentials, TwitterClient
 
 LOGGER = logging.getLogger()
@@ -40,26 +41,25 @@ TWITTER_BOT = TwitterBot(TWITTER_CLIENT)
 # TODO since only getting bills with any
 # TODO action date = 'Query Date' and any action = 'Referred'
 def create_query(max_date):
-    min_date = max_date - dateutil.relativedelta.relativedelta(months=1)
-    return {
-        'ocd-person': config.PERSON,
-        'max_date': max_date.strftime("%Y-%m-%d"),
-        'min_date': min_date.strftime("%Y-%m-%d"),
-        'actions': config.ACTIONS,
-    }
+    min_date = max_date - dateutil.relativedelta.relativedelta(weeks=6)
+    return BillsRequestParams(
+        person_id=config.PERSON,
+        max_date=max_date.strftime("%Y-%m-%d"),
+        min_date=min_date.strftime("%Y-%m-%d"),
+        description=config.ACTIONS
+    )
 
 
 def call(event, context):
     query_params = create_query(today())
-    introductions = ocd_bills.get_bills(
-        query_params['ocd-person'],
-        query_params['max_date'],
-        query_params['min_date'],
-        query_params['actions'],
-    )
+    introductions = ocd_bills.get_bills(query_params)
     new_introductions = [introduction for introduction in introductions
                          if not BILLS.exists(introduction.identifier)]
     LOGGER.info("call: {} new introductions".format(len(new_introductions)))
+    # TODO change the flow to only insert if suceed in updating status
+    # TODO and process one tweet at time since not going to be bulk
+    # TODO updating / inserting large number of tweets.
     BILLS.insert(new_introductions)
     if len(new_introductions) > 0:
         TWITTER_BOT.tweet_introductions(new_introductions)
+        sleep(5)

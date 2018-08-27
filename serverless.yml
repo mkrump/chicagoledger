@@ -40,7 +40,7 @@ functions:
     handler: handler.call
     events:
       - schedule:
-          rate: rate(1 day)
+          rate: rate(1 minute)
 
 resources:
   Resources:
