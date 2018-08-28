@@ -8,8 +8,9 @@ import pytest
 import requests
 from betamax_serializers import pretty_json
 
-from ocd_api import Bill, BillsEndpoint, BillsRequestParams
-from test_config import EXPECTED_IDENTIFIER, EXPECTED_OCD_ID, EXPECTED_TITLE, EXPECTED_CLASSIFICATION
+from src.ocd_api import BillsEndpoint, BillsRequestParams
+from src.bills import Bill
+from tests.test_config import EXPECTED_IDENTIFIER, EXPECTED_OCD_ID, EXPECTED_TITLE, EXPECTED_CLASSIFICATION
 
 
 @pytest.fixture()
@@ -17,7 +18,7 @@ def multi_page_request():
     session = requests.Session()
     betamax.Betamax.register_serializer(pretty_json.PrettyJSONSerializer)
     recorder = betamax.Betamax(
-        session, cassette_library_dir='cassettes'
+        session, cassette_library_dir='tests/cassettes'
     )
     matchers = ['method', 'uri', 'body']
 
@@ -63,8 +64,8 @@ def create_multi_page_mock_response(total_count, per_page):
         page += 1
 
 
-@mock.patch('ocd_api.BillsEndpoint._call_bills_api')
-@mock.patch('ocd_api.BillsEndpoint.parse_bills')
+@mock.patch('src.ocd_api.BillsEndpoint._call_bills_api')
+@mock.patch('src.ocd_api.BillsEndpoint.parse_bills')
 def test_get_bills_single_page(mock_parse_bills, mock_call_bills_api):
     api = BillsEndpoint(mock.Mock(requests.Session))
     responses = list(create_multi_page_mock_response(10, 100))
@@ -84,8 +85,8 @@ def test_get_bills_single_page(mock_parse_bills, mock_call_bills_api):
     mock_parse_bills.assert_has_calls(expected_calls, any_order=True)
 
 
-@mock.patch('ocd_api.BillsEndpoint._call_bills_api')
-@mock.patch('ocd_api.BillsEndpoint.parse_bills')
+@mock.patch('src.ocd_api.BillsEndpoint._call_bills_api')
+@mock.patch('src.ocd_api.BillsEndpoint.parse_bills')
 def test_get_bills_multi_page(mock_parse_bills, mock_call_bills_api):
     api = BillsEndpoint(mock.Mock(requests.Session))
     responses = list(create_multi_page_mock_response(384, 100))
@@ -128,7 +129,7 @@ def test_call_bills_api(multi_page_request):
 
 
 def test_parse_bills():
-    with open('cassettes/single_page_bills.json') as f:
+    with open('tests/cassettes/single_page_bills.json') as f:
         cassette_json = json.load(f)
         response_json = json.loads(cassette_json['http_interactions'][0]['response']['body']['string'])
         api = BillsEndpoint(mock.Mock(requests.Session))

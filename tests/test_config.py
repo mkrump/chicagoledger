@@ -1,4 +1,4 @@
-from ocd_api import Bill
+from src.bills import Bill
 
 EXPECTED_IDENTIFIER = 'O2018-6138'
 EXPECTED_TITLE = 'Fifty-fifth amending agreement with SomerCor 504, Inc. regarding Small Business Improvement Fund ' \

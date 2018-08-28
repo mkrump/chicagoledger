@@ -2,15 +2,15 @@ from unittest.mock import patch
 
 from mock import create_autospec
 
-from test_config import EXAMPLE_INTRODUCTIONS
-from twitter import TwitterBot, TwitterCredentials, TWITTER_MAX_CHARS, TwitterClient
+from tests.test_config import EXAMPLE_INTRODUCTIONS
+from src.twitter import TwitterBot, TwitterCredentials, TWITTER_MAX_CHARS, TwitterClient
 
 example_introduction = EXAMPLE_INTRODUCTIONS[0]
 tweet = 'O2099-1111 http://chicago.legistar.com/gateway.aspx?M=F2&ID=O2099-1111 #ordinance\n' \
         'Make it illegal to put ketchup on hotdogs'
 
 
-@patch('twitter.TwitterBot.format_tweets')
+@patch('src.twitter.TwitterBot.format_tweets')
 def test_tweet_introductions(mock_format_tweets):
     twitter_client = create_autospec(TwitterClient)
     twitter_bot = TwitterBot(twitter_client)

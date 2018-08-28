@@ -9,10 +9,10 @@ from botocore.exceptions import ProfileNotFound
 from dateutil.utils import today
 from twython import TwythonError
 
-import config
-from bills import Bills
-from ocd_api import BillsEndpoint, BillsRequestParams
-from twitter import TwitterBot, TwitterCredentials, TwitterClient
+from src import config
+from src.bills import Bills
+from src.ocd_api import BillsEndpoint, BillsRequestParams
+from src.twitter import TwitterBot, TwitterCredentials, TwitterClient
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
@@ -61,6 +61,6 @@ def call(event, context):
             try:
                 TWITTER_BOT.tweet_introductions(introduction)
             except TwythonError as e:
-                LOGGER.info("handler: {} error:  {}", e.error_code, e.msg)
+                LOGGER.info("handler: {} error:  {}".format(e.error_code, e.msg))
             else:
                 BILLS.insert(introduction)

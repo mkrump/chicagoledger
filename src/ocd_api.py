@@ -1,26 +1,6 @@
 from collections import namedtuple
 
-from requests import Request
-
-
-class Bill:
-    def __init__(self, identifier, title, classifications, ocd_id):
-        self.identifier = identifier
-        self.title = title
-        self.classifications = classifications
-        self.legistar_url = self._build_legistar_url(identifier)
-        self.detail_url = 'https://ocd.datamade.us/{}'.format(ocd_id)
-
-    @staticmethod
-    def _build_legistar_url(identifier):
-        url = 'http://chicago.legistar.com/gateway.aspx'
-        params = {
-            'M': 'F2',
-            'ID': identifier
-        }
-        r = Request('GET', url=url, params=params).prepare()
-        return r.url
-
+from src.bills import Bill
 
 BillsRequestParams = namedtuple('BillsRequestParams', 'person_id, min_date, max_date, description')
 

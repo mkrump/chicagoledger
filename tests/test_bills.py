@@ -2,8 +2,8 @@ import boto3
 import pytest
 from moto import mock_dynamodb2
 
-from bills import Bills
-from test_config import EXAMPLE_INTRODUCTIONS
+from src.bills import Bills
+from tests.test_config import EXAMPLE_INTRODUCTIONS
 
 
 @pytest.fixture

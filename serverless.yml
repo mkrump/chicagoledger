@@ -37,7 +37,7 @@ custom:
 
 functions:
   tweet:
-    handler: handler.call
+    handler: src/handler.call
     events:
       - schedule:
           rate: rate(1 minute)
