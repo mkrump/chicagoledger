@@ -3,12 +3,7 @@ import pytest
 from moto import mock_dynamodb2
 
 from bills import Bills
-from ocd_api import Bill
-
-example_introductions = [
-    Bill('O2099-1111', 'Make it illegal to put ketchup on hotdogs', ['ordinance']),
-    Bill('O2098-1112', 'Dye the lake green everyday', ['ordinance'])
-]
+from test_config import EXAMPLE_INTRODUCTIONS
 
 
 @pytest.fixture
@@ -34,9 +29,10 @@ def test_exists(bills_table):
 
 def test_insert(bills_table):
     bills = Bills(boto3.Session())
-    bills.insert(example_introductions)
+    for introduction in EXAMPLE_INTRODUCTIONS:
+        bills.insert(introduction)
 
-    intro1 = bills_table.get_item(Key={'bill_id': example_introductions[0].identifier})['Item']
-    intro2 = bills_table.get_item(Key={'bill_id': example_introductions[1].identifier})['Item']
-    assert intro1['bill_id'] == example_introductions[0].identifier
-    assert intro2['bill_id'] == example_introductions[1].identifier
+    intro1 = bills_table.get_item(Key={'bill_id': EXAMPLE_INTRODUCTIONS[0].identifier})['Item']
+    intro2 = bills_table.get_item(Key={'bill_id': EXAMPLE_INTRODUCTIONS[1].identifier})['Item']
+    assert intro1['bill_id'] == EXAMPLE_INTRODUCTIONS[0].identifier
+    assert intro2['bill_id'] == EXAMPLE_INTRODUCTIONS[1].identifier

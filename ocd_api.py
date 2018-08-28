@@ -4,11 +4,12 @@ from requests import Request
 
 
 class Bill:
-    def __init__(self, identifier, title, classifications):
+    def __init__(self, identifier, title, classifications, ocd_id):
         self.identifier = identifier
         self.title = title
         self.classifications = classifications
         self.legistar_url = self._build_legistar_url(identifier)
+        self.detail_url = 'https://ocd.datamade.us/{}'.format(ocd_id)
 
     @staticmethod
     def _build_legistar_url(identifier):
@@ -59,6 +60,6 @@ class BillsEndpoint:
     def parse_bills(bills_json):
         bills = []
         for bill in bills_json['results']:
-            b = Bill(bill['identifier'], bill['title'].strip(), bill['classification'])
+            b = Bill(bill['identifier'], bill['title'].strip(), bill['classification'], bill['id'])
             bills.append(b)
         return bills

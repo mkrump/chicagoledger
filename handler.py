@@ -1,13 +1,13 @@
 import json
 import logging
 import os
-from time import sleep
 
 import boto3
 import dateutil
 import requests
 from botocore.exceptions import ProfileNotFound
 from dateutil.utils import today
+from twython import TwythonError
 
 import config
 from bills import Bills
@@ -56,10 +56,11 @@ def call(event, context):
     new_introductions = [introduction for introduction in introductions
                          if not BILLS.exists(introduction.identifier)]
     LOGGER.info("call: {} new introductions".format(len(new_introductions)))
-    # TODO change the flow to only insert if suceed in updating status
-    # TODO and process one tweet at time since not going to be bulk
-    # TODO updating / inserting large number of tweets.
-    BILLS.insert(new_introductions)
     if len(new_introductions) > 0:
-        TWITTER_BOT.tweet_introductions(new_introductions)
-        sleep(5)
+        for introduction in introductions:
+            try:
+                TWITTER_BOT.tweet_introductions(introduction)
+            except TwythonError as e:
+                LOGGER.info("handler: {} error:  {}", e.error_code, e.msg)
+            else:
+                BILLS.insert(introduction)

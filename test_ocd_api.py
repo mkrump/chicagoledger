@@ -9,14 +9,7 @@ import requests
 from betamax_serializers import pretty_json
 
 from ocd_api import Bill, BillsEndpoint, BillsRequestParams
-
-EXPECTED_ORDINANCE = ['ordinance']
-
-EXPECTED_IDENTIFIER = 'O2018-6138'
-
-EXPECTED_TITLE = 'Fifty-fifth amending agreement with SomerCor 504, Inc. regarding Small Business Improvement Fund ' \
-                 'program increases within Jefferson Park, Lawrence/Pulaski and Lincoln Avenue areas'
-EXPECTED_BILL = Bill(EXPECTED_IDENTIFIER, EXPECTED_TITLE, EXPECTED_ORDINANCE)
+from test_config import EXPECTED_IDENTIFIER, EXPECTED_OCD_ID, EXPECTED_TITLE, EXPECTED_CLASSIFICATION
 
 
 @pytest.fixture()
@@ -144,7 +137,9 @@ def test_parse_bills():
 
         first_bill = [bill for bill in bills if bill.identifier == EXPECTED_IDENTIFIER][0]
         assert len(bills) == 31
-        assert first_bill.identifier == EXPECTED_BILL.identifier
-        assert first_bill.title == EXPECTED_BILL.title
-        assert first_bill.classifications == EXPECTED_BILL.classifications
-        assert first_bill.legistar_url == 'http://chicago.legistar.com/gateway.aspx?M=F2&ID=O2018-6138'
+        assert first_bill.identifier == EXPECTED_IDENTIFIER
+        assert first_bill.title == EXPECTED_TITLE
+        assert first_bill.classifications == EXPECTED_CLASSIFICATION
+        assert first_bill.legistar_url == 'http://chicago.legistar.com/gateway.aspx?M=F2&ID={}'.format(
+            EXPECTED_IDENTIFIER)
+        assert first_bill.detail_url == 'https://ocd.datamade.us/{}'.format(EXPECTED_OCD_ID)

@@ -27,18 +27,18 @@ class TwitterBot:
                 title=bill.title)
         )
 
-    def tweet_introductions(self, bills):
-        tweets = self.format_tweets(bills)
-        for tweet in tweets:
-            self.twitter_client.update_status(status=tweet)
+    def delete_last_tweet(self):
+        last_tweet = self.twitter_client.get_home_timeline(count=1)
+        self.twitter_client.destroy_status(id=last_tweet[0]['id'])
 
-    def format_tweets(self, bills):
-        tweets = []
-        for bill in bills:
-            status = self.tweet_template(bill=bill)
-            status = self.shorten(status)
-            tweets.append(status)
-        return tweets
+    def tweet_introductions(self, bill):
+        tweet = self.format_tweets(bill)
+        return self.twitter_client.update_status(status=tweet)
+
+    def format_tweets(self, bill):
+        status = self.tweet_template(bill=bill)
+        status = self.shorten(status)
+        return status
 
     @staticmethod
     def shorten(text):

@@ -2,41 +2,36 @@ from unittest.mock import patch
 
 from mock import create_autospec
 
-from test_handler import example_introductions
+from test_config import EXAMPLE_INTRODUCTIONS
 from twitter import TwitterBot, TwitterCredentials, TWITTER_MAX_CHARS, TwitterClient
 
-tweets = [
-    'O2099-1111 http://chicago.legistar.com/gateway.aspx?M=F2&ID=O2099-1111 #ordinance\nMake it illegal to put ketchup on hotdogs',
-    'O2098-1112 http://chicago.legistar.com/gateway.aspx?M=F2&ID=O2098-1112 #ordinance\nDye the lake green everyday',
-]
+example_introduction = EXAMPLE_INTRODUCTIONS[0]
+tweet = 'O2099-1111 http://chicago.legistar.com/gateway.aspx?M=F2&ID=O2099-1111 #ordinance\n' \
+        'Make it illegal to put ketchup on hotdogs'
 
 
 @patch('twitter.TwitterBot.format_tweets')
-def test_bot(mock_format_tweets):
+def test_tweet_introductions(mock_format_tweets):
     twitter_client = create_autospec(TwitterClient)
     twitter_bot = TwitterBot(twitter_client)
-    mock_format_tweets.return_value = tweets
+    mock_format_tweets.return_value = tweet
 
-    twitter_bot.tweet_introductions(example_introductions)
+    twitter_bot.tweet_introductions(example_introduction)
 
     mock_format_tweets.assert_called_once()
-    assert twitter_client.update_status.call_count == 2
+    assert twitter_client.update_status.call_count == 1
     twitter_bot.twitter_client.update_status.assert_any_call(
         status='O2099-1111 http://chicago.legistar.com/gateway.aspx?M=F2&ID=O2099-1111 #ordinance\n'
                'Make it illegal to put ketchup on hotdogs'
-    )
-    twitter_bot.twitter_client.update_status.assert_any_call(
-        status='O2098-1112 http://chicago.legistar.com/gateway.aspx?M=F2&ID=O2098-1112 #ordinance\n'
-               'Dye the lake green everyday'
     )
 
 
 def test_format_tweets():
     bot = TwitterBot(TwitterCredentials('', '', '', ''))
 
-    formatted_tweets = bot.format_tweets(example_introductions)
+    formatted_tweets = bot.format_tweets(example_introduction)
 
-    assert formatted_tweets == tweets
+    assert formatted_tweets == tweet
 
 
 def test_shorten():
