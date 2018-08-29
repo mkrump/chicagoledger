@@ -18,3 +18,11 @@ https://github.com/serverless/serverless/blob/master/README.md#quick-start))
 ```
 
 - Deploy with serverless `serverless deploy`
+
+## Tests
+
+```
+pip install -r requirements/requirements-dev.txt 
+python -m pytest 
+```
+

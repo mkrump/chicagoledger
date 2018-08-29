@@ -9,10 +9,10 @@ from botocore.exceptions import ProfileNotFound
 from dateutil.utils import today
 from twython import TwythonError
 
-from src import config
-from src.bills import Bills
-from src.ocd_api import BillsEndpoint, BillsRequestParams
-from src.twitter import TwitterBot, TwitterCredentials, TwitterClient
+from tweet import config
+from tweet.bills import Bills
+from tweet.ocd_api import BillsEndpoint, BillsRequestParams
+from tweet.twitter import TwitterCredentials, TwitterClient, TwitterBot
 
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)

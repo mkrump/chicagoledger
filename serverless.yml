@@ -17,7 +17,7 @@ provider:
      Action:
        - "secretsmanager:GetSecretValue"
      Resource:
-       - "arn:aws:secretsmanager:#{AWS::Region}:#{AWS::AccountId}:secret:Twitter-2gvVS8"
+       - "arn:aws:secretsmanager:#{AWS::Region}:#{AWS::AccountId}:secret:Twitter-*"
 
 
 package:
@@ -37,7 +37,7 @@ custom:
 
 functions:
   tweet:
-    handler: src/handler.call
+    handler: tweet/handler.call
     events:
       - schedule:
           rate: rate(1 minute)

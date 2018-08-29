@@ -8,9 +8,9 @@ import pytest
 import requests
 from betamax_serializers import pretty_json
 
-from src.ocd_api import BillsEndpoint, BillsRequestParams
-from src.bills import Bill
-from tests.test_config import EXPECTED_IDENTIFIER, EXPECTED_OCD_ID, EXPECTED_TITLE, EXPECTED_CLASSIFICATION
+from tweet.ocd_api import BillsEndpoint, BillsRequestParams
+from tweet.bills import Bill
+from tweet.tests.test_config import EXPECTED_IDENTIFIER, EXPECTED_OCD_ID, EXPECTED_TITLE, EXPECTED_CLASSIFICATION
 
 
 @pytest.fixture()
@@ -18,7 +18,7 @@ def multi_page_request():
     session = requests.Session()
     betamax.Betamax.register_serializer(pretty_json.PrettyJSONSerializer)
     recorder = betamax.Betamax(
-        session, cassette_library_dir='tests/cassettes'
+        session, cassette_library_dir='tweet/tests/cassettes'
     )
     matchers = ['method', 'uri', 'body']
 
@@ -64,8 +64,8 @@ def create_multi_page_mock_response(total_count, per_page):
         page += 1
 
 
-@mock.patch('src.ocd_api.BillsEndpoint._call_bills_api')
-@mock.patch('src.ocd_api.BillsEndpoint.parse_bills')
+@mock.patch('tweet.ocd_api.BillsEndpoint._call_bills_api')
+@mock.patch('tweet.ocd_api.BillsEndpoint.parse_bills')
 def test_get_bills_single_page(mock_parse_bills, mock_call_bills_api):
     api = BillsEndpoint(mock.Mock(requests.Session))
     responses = list(create_multi_page_mock_response(10, 100))
@@ -85,8 +85,8 @@ def test_get_bills_single_page(mock_parse_bills, mock_call_bills_api):
     mock_parse_bills.assert_has_calls(expected_calls, any_order=True)
 
 
-@mock.patch('src.ocd_api.BillsEndpoint._call_bills_api')
-@mock.patch('src.ocd_api.BillsEndpoint.parse_bills')
+@mock.patch('tweet.ocd_api.BillsEndpoint._call_bills_api')
+@mock.patch('tweet.ocd_api.BillsEndpoint.parse_bills')
 def test_get_bills_multi_page(mock_parse_bills, mock_call_bills_api):
     api = BillsEndpoint(mock.Mock(requests.Session))
     responses = list(create_multi_page_mock_response(384, 100))
@@ -116,9 +116,7 @@ def test_call_bills_api(multi_page_request):
     )
 
     response = api._call_bills_api(payload, page=2)
-    parsed_url = urlparse(response.url)
-    params = dict(parse_qs(parsed_url.query))
-    url = parsed_url._replace(query=None).geturl()
+    params, url = get_url_and_params(response.url)
 
     assert params['actions__date__gte'] == [payload.min_date]
     assert params['actions__date__lte'] == [payload.max_date]
@@ -128,8 +126,15 @@ def test_call_bills_api(multi_page_request):
     assert url == "https://ocd.datamade.us/bills/"
 
 
+def get_url_and_params(full_url):
+    parsed_url = urlparse(full_url)
+    params = dict(parse_qs(parsed_url.query))
+    url = parsed_url._replace(query=None).geturl()
+    return params, url
+
+
 def test_parse_bills():
-    with open('tests/cassettes/single_page_bills.json') as f:
+    with open('tweet/tests/cassettes/single_page_bills.json') as f:
         cassette_json = json.load(f)
         response_json = json.loads(cassette_json['http_interactions'][0]['response']['body']['string'])
         api = BillsEndpoint(mock.Mock(requests.Session))
@@ -141,6 +146,8 @@ def test_parse_bills():
         assert first_bill.identifier == EXPECTED_IDENTIFIER
         assert first_bill.title == EXPECTED_TITLE
         assert first_bill.classifications == EXPECTED_CLASSIFICATION
-        assert first_bill.legistar_url == 'http://chicago.legistar.com/gateway.aspx?M=F2&ID={}'.format(
-            EXPECTED_IDENTIFIER)
+        params, url = get_url_and_params(first_bill.legistar_url)
+        assert url == 'http://chicago.legistar.com/gateway.aspx'
+        assert params['M'] == ['F2']
+        assert params['ID'] == [EXPECTED_IDENTIFIER]
         assert first_bill.detail_url == 'https://ocd.datamade.us/{}'.format(EXPECTED_OCD_ID)

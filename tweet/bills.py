@@ -34,9 +34,6 @@ class Bill:
     @staticmethod
     def _build_legistar_url(identifier):
         url = 'http://chicago.legistar.com/gateway.aspx'
-        params = {
-            'M': 'F2',
-            'ID': identifier
-        }
+        params = (('M','F2'), ('ID',identifier))
         r = Request('GET', url=url, params=params).prepare()
         return r.url

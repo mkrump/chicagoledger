@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from src.bills import Bill
+from tweet.bills import Bill
 
 BillsRequestParams = namedtuple('BillsRequestParams', 'person_id, min_date, max_date, description')
 

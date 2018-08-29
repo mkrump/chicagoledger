@@ -18,9 +18,9 @@ class TwitterBot:
 
     @staticmethod
     def tweet_template(bill):
-        classifications = ' '.join(['#' + classification for classification in bill.classifications])
+        classifications = ' '.join(['#chi_' + classification for classification in bill.classifications])
         return (
-            "{identifier} {url} {classifications}\n{title}".format(
+            "{identifier}: {url} {classifications}\n{title}".format(
                 identifier=bill.identifier,
                 url=bill.legistar_url,
                 classifications=classifications,
