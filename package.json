@@ -3,6 +3,7 @@
   "description": "",
   "version": "0.1.0",
   "dependencies": {
+    "serverless-plugin-additional-stacks": "^1.2.0",
     "serverless-pseudo-parameters": "^2.1.0"
   },
   "devDependencies": {

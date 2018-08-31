@@ -17,8 +17,21 @@ https://github.com/serverless/serverless/blob/master/README.md#quick-start))
 }
 ```
 
-- Deploy with serverless `serverless deploy`
+## Deploy
+- Uses the [serverless additional stacks plugin](https://github.com/SC5/serverless-plugin-additional-stacks) to separate out the DynamoDB / Lambda deployments
 
+    - Deploy everything including DynamoDB 
+    ```sls deploy```
+
+    - Deploy only Lambda 
+    ```sls deploy --skip-additionalstacks```
+    
+    - Remove only Lambda 
+    ```sls remove --skip-additionalstacks```
+    
+    - Remove DynamoDB 
+    ```sls remove additionalstacks```
+     
 ## Tests
 
 ```
