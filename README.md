@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mkrump/whatrahmwants.svg?branch=master)](https://travis-ci.org/mkrump/whatrahmwants)
+
 An AWS Lambda twitter bot that shares legislation introduced by Chicago mayor Rahm Emanuel
 
 ## Setup
