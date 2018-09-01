@@ -38,18 +38,12 @@ def twitter_bot():
 
 
 @pytest.fixture
-def logger():
-    logger = mock.create_autospec(Logger)
-    yield logger
-
-
-@pytest.fixture
-def app(bills_api, bills_request_params, bills, twitter_bot, logger):
-    yield App(bills_api, bills_request_params, bills, twitter_bot, logger)
+def app(bills_api, bills_request_params, bills, twitter_bot):
+    yield App(bills_api, bills_request_params, bills, twitter_bot)
 
 
 def test_tweet(app):
-    tweet(app.bills_api, app.query, app.bills, app.twitter_bot, app.logger)
+    tweet(app.bills_api, app.query, app.bills, app.twitter_bot)
 
     tweet_introductions_expected_calls = [mock.call(i) for i in EXAMPLE_INTRODUCTIONS]
     assert app.twitter_bot.tweet_introductions.call_count == 2
@@ -63,7 +57,7 @@ def test_tweet(app):
 def test_tweet_error(app):
     app.twitter_bot.tweet_introductions.side_effect = [TwythonError('error'), None]
     app.bills_api.return_value = EXAMPLE_INTRODUCTIONS
-    tweet(app.bills_api, app.query, app.bills, app.twitter_bot, app.logger)
+    tweet(app.bills_api, app.query, app.bills, app.twitter_bot)
 
     tweet_introductions_expected_calls = [mock.call(i) for i in EXAMPLE_INTRODUCTIONS]
     assert app.twitter_bot.tweet_introductions.call_count == 2

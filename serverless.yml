@@ -56,4 +56,4 @@ functions:
     handler: tweet/handler.call
     events:
       - schedule:
-          rate: rate(5 minute)
+          rate: rate(5 minutes)
