@@ -2,7 +2,7 @@ from unittest.mock import patch
 
 from mock import create_autospec
 
-from tweet.tests.test_config import EXAMPLE_INTRODUCTIONS
+from tweet.tests.conftest import EXAMPLE_INTRODUCTIONS
 from tweet.twitter import TwitterClient, TwitterBot, TwitterCredentials, TWITTER_MAX_CHARS
 
 EXAMPLE_INTRODUCTION = EXAMPLE_INTRODUCTIONS[0]
@@ -37,3 +37,5 @@ def test_shorten():
     shortened_text = bot.shorten(text)
     assert len(shortened_text) == TWITTER_MAX_CHARS
     assert text[:TWITTER_MAX_CHARS - 3] + '...' == shortened_text
+
+

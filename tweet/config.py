@@ -1,17 +1,8 @@
-import json
-import logging
-import os
 from collections import namedtuple
 
-import boto3
-import requests
-from botocore.exceptions import ProfileNotFound
 from dateutil.utils import today
 
-from tweet.aws_util import get_secret, generate_boto3_session
-from tweet.bills import Bills
-from tweet.ocd_api import BillsAPI, create_query
-from tweet.twitter import TwitterCredentials, TwitterClient, TwitterBot
+from tweet.ocd_api import create_query
 
 AppConfig = namedtuple('AppConfig', 'aws_profile, aws_secret_name, query')
 

@@ -1,15 +1,13 @@
 import datetime
-import json
 from urllib.parse import urlparse, parse_qs
 
 import betamax
-import mock
 import pytest
 import requests
 from betamax_serializers import pretty_json
 
 from tweet.ocd_api import BillsAPI, BillsRequestParams, create_query
-from tweet.tests.test_config import EXPECTED_IDENTIFIER, EXPECTED_OCD_ID, EXPECTED_TITLE, EXPECTED_CLASSIFICATION
+from tweet.tests.conftest import EXPECTED_IDENTIFIER, EXPECTED_TITLE, EXPECTED_CLASSIFICATION, EXPECTED_OCD_ID
 
 
 def get_url_and_params(full_url):

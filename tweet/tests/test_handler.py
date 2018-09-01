@@ -5,10 +5,9 @@ from mock import mock
 from twython import TwythonError
 
 from tweet.bills import Bills
-from tweet.config import AppConfig
 from tweet.handler import tweet, get_new_introductions, App
 from tweet.ocd_api import BillsRequestParams, BillsAPI
-from tweet.tests.test_config import EXAMPLE_INTRODUCTIONS
+from tweet.tests.conftest import EXAMPLE_INTRODUCTIONS
 from tweet.twitter import TwitterBot
 
 

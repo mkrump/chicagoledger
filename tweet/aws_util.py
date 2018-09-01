@@ -1,7 +1,10 @@
+import json
 import os
 
 import boto3
 from botocore.exceptions import ClientError, ProfileNotFound
+
+from tweet.twitter import TwitterCredentials, TwitterClient
 
 
 def get_secret(boto3_session, secret_name):
@@ -39,3 +42,12 @@ def generate_boto3_session(aws_profile_name):
         region = os.environ['AWS_DEFAULT_REGION']
         boto3_session = boto3.Session(region_name=region)
     return boto3_session
+
+
+def twitter_client_from_aws(boto3_session, aws_secret_name):
+    secret = json.loads(get_secret(boto3_session, aws_secret_name))
+    twitter_credentials = TwitterCredentials(secret['twitter-consumer-key'],
+                                             secret['twitter-consumer-secret'],
+                                             secret['twitter-access-token'],
+                                             secret['twitter-access-secret'])
+    return TwitterClient(twitter_credentials)

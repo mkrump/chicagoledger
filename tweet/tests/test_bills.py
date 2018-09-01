@@ -3,7 +3,7 @@ import pytest
 from moto import mock_dynamodb2
 
 from tweet.bills import Bills
-from tweet.tests.test_config import EXAMPLE_INTRODUCTIONS
+from tweet.tests.conftest import EXAMPLE_INTRODUCTIONS
 
 
 @pytest.fixture
