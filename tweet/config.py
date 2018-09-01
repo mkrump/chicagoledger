@@ -1,7 +1,19 @@
-from botocore.exceptions import ClientError
+import json
+import logging
+import os
 
+import boto3
+import requests
+from botocore.exceptions import ProfileNotFound
 # OCD Query params
 # Rahm Emanuel -> https://ocd.datamade.us/ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca/
+from dateutil.utils import today
+
+from tweet.aws_util import get_secret
+from tweet.bills import Bills
+from tweet.ocd_api import BillsAPI, create_query
+from tweet.twitter import TwitterCredentials, TwitterClient, TwitterBot
+
 PERSON = 'ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca'
 ACTIONS = 'Referred'
 
@@ -11,30 +23,30 @@ ACTIONS = 'Referred'
 AWS_PROFILE_NAME = 'default'
 AWS_SECRETSMANAGER_SECRET_NAME = 'Twitter'
 
+LOGGER = logging.getLogger()
+LOGGER.setLevel(logging.INFO)
 
-def get_secret(boto3_session):
-    client = boto3_session.client(
-        service_name='secretsmanager',
-        region_name=boto3_session.region_name,
-    )
+requests_session = requests.Session()
+OCD_BILLS_API = BillsAPI(requests_session)
 
-    try:
-        get_secret_value_response = client.get_secret_value(
-            SecretId=AWS_SECRETSMANAGER_SECRET_NAME
-        )
-    except ClientError as e:
-        if e.response['Error']['Code'] == 'ResourceNotFoundException':
-            print("The requested secret " + AWS_SECRETSMANAGER_SECRET_NAME + " was not found")
-        elif e.response['Error']['Code'] == 'InvalidRequestException':
-            print("The request was invalid due to:", e)
-        elif e.response['Error']['Code'] == 'InvalidParameterException':
-            print("The request had invalid params:", e)
-    else:
-        # Decrypted secret using the associated KMS CMK
-        # Depending on whether the secret was a string or binary, one of these fields will be populated
-        if 'SecretString' in get_secret_value_response:
-            secret = get_secret_value_response['SecretString']
-            return secret
-        else:
-            binary_secret_data = get_secret_value_response['SecretBinary']
-            return binary_secret_data
+try:
+    boto3_session = boto3.Session(profile_name=AWS_PROFILE_NAME)
+except ProfileNotFound:
+    region = os.environ['AWS_DEFAULT_REGION']
+    boto3_session = boto3.Session(region_name=region)
+
+BILLS = Bills(boto3_session)
+secret = json.loads(get_secret(boto3_session, AWS_SECRETSMANAGER_SECRET_NAME))
+twitter_credentials = TwitterCredentials(secret['twitter-consumer-key'],
+                                         secret['twitter-consumer-secret'],
+                                         secret['twitter-access-token'],
+                                         secret['twitter-access-secret'])
+
+twitter_client = TwitterClient(twitter_credentials)
+
+TWITTER_BOT = TwitterBot(twitter_client)
+QUERY = create_query(
+    max_date=today(),
+    weeks_offset=6,
+    person=PERSON, description=ACTIONS
+)

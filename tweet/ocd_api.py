@@ -1,11 +1,13 @@
 from collections import namedtuple
 
+from dateutil import relativedelta
+
 from tweet.bills import Bill
 
 BillsRequestParams = namedtuple('BillsRequestParams', 'person_id, min_date, max_date, description')
 
 
-class BillsEndpoint:
+class BillsAPI:
     endpoint = 'https://ocd.datamade.us/bills/'
 
     def __init__(self, session):
@@ -43,3 +45,16 @@ class BillsEndpoint:
             b = Bill(bill['identifier'], bill['title'].strip(), bill['classification'], bill['id'])
             bills.append(b)
         return bills
+
+
+# TODO Not sure this query does quite what we want
+# TODO since only getting bills with any
+# TODO action date = 'Query Date' and any action = 'Referred'
+def create_query(max_date, weeks_offset, person, description):
+    min_date = max_date - relativedelta.relativedelta(weeks=weeks_offset)
+    return BillsRequestParams(
+        person_id=person,
+        max_date=max_date.strftime("%Y-%m-%d"),
+        min_date=min_date.strftime("%Y-%m-%d"),
+        description=description,
+    )
