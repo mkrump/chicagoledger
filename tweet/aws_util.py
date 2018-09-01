@@ -1,4 +1,7 @@
-from botocore.exceptions import ClientError
+import os
+
+import boto3
+from botocore.exceptions import ClientError, ProfileNotFound
 
 
 def get_secret(boto3_session, secret_name):
@@ -27,3 +30,12 @@ def get_secret(boto3_session, secret_name):
         else:
             binary_secret_data = get_secret_value_response['SecretBinary']
             return binary_secret_data
+
+
+def generate_boto3_session(aws_profile_name):
+    try:
+        boto3_session = boto3.Session(profile_name=aws_profile_name)
+    except ProfileNotFound:
+        region = os.environ['AWS_DEFAULT_REGION']
+        boto3_session = boto3.Session(region_name=region)
+    return boto3_session

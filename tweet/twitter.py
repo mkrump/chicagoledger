@@ -1,13 +1,17 @@
+import json
 import logging
 from collections import namedtuple
 
 from twython import Twython, TwythonError
+
+from tweet.aws_util import get_secret
 
 TwitterCredentials = namedtuple('TwitterCredentials',
                                 ['consumer_key', 'consumer_secret', 'access_token', 'access_secret'])
 
 TWITTER_MAX_CHARS = 280
 
+# TODO get rid of this
 LOGGER = logging.getLogger()
 LOGGER.setLevel(logging.INFO)
 
@@ -53,6 +57,15 @@ class TwitterClient:
             self.twitter_client = self.connect(twitter_credentials)
         except TwythonError as e:
             LOGGER.info(e)
+
+    @classmethod
+    def from_aws(cls, boto3_session, aws_secret_name):
+        secret = json.loads(get_secret(boto3_session, aws_secret_name))
+        twitter_credentials = TwitterCredentials(secret['twitter-consumer-key'],
+                                                 secret['twitter-consumer-secret'],
+                                                 secret['twitter-access-token'],
+                                                 secret['twitter-access-secret'])
+        return cls(twitter_credentials)
 
     @staticmethod
     def connect(twitter_credentials):
