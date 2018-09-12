@@ -12,7 +12,7 @@ PERSON = 'ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca'
 ACTIONS = 'Referred'
 QUERY = create_query(
     max_date=today(),
-    weeks_offset=6,
+    weeks_offset=8,
     person=PERSON, description=ACTIONS
 )
 
