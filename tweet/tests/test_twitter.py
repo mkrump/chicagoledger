@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from mock import create_autospec
+from mock import create_autospec, call
 
 from tweet.tests.conftest import EXAMPLE_INTRODUCTIONS
 from tweet.twitter import TwitterClient, TwitterBot, TwitterCredentials, TWITTER_MAX_CHARS
@@ -20,7 +20,7 @@ def test_tweet_introductions(mock_format_tweets):
 
     assert mock_format_tweets.call_count == 1
     assert twitter_client.update_status.call_count == 1
-    twitter_bot.twitter_client.update_status.assert_any_call(status=TWEET)
+    twitter_bot.twitter_client.update_status.assert_any_call(status=TWEET, in_reply_to_status_id=None)
 
 
 def test_format_tweets():

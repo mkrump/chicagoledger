@@ -1,27 +1,13 @@
-from logging import Logger
-
 import pytest
-from mock import mock
+from mock import mock, patch
 from twython import TwythonError
 
-from tweet.bills import Bills
-from tweet.handler import tweet, get_new_introductions, App
-from tweet.ocd_api import BillsRequestParams, BillsAPI
+from tweet.bills import Bills, Bill
+from tweet.handler import tweet, App, new_thread, continue_thread
 from tweet.tests.conftest import EXAMPLE_INTRODUCTIONS
 from tweet.twitter import TwitterBot
 
-
-@pytest.fixture
-def bills_api():
-    bills_api = mock.create_autospec(BillsAPI)
-    bills_api.get_bills.return_value = EXAMPLE_INTRODUCTIONS
-    yield bills_api
-
-
-@pytest.fixture
-def bills_request_params():
-    bills_request_params = mock.create_autospec(BillsRequestParams)
-    yield bills_request_params
+SUCCESS_RESPONSE = {'code': '200', 'id_str': '123'}
 
 
 @pytest.fixture
@@ -38,39 +24,80 @@ def twitter_bot():
 
 
 @pytest.fixture
-def app(bills_api, bills_request_params, bills, twitter_bot):
-    yield App(bills_api, bills_request_params, bills, twitter_bot)
+def app(bills, twitter_bot):
+    yield App(bills, twitter_bot)
 
 
-def test_tweet(app):
-    tweet(app.bills_api, app.query, app.bills, app.twitter_bot)
+@patch('tweet.handler.prev_tweet_id_is_missing')
+@patch('tweet.handler.new_thread')
+@patch('tweet.handler.continue_thread')
+def test_tweet(mock_continue_thread, mock_new_thread, mock_prev_tweet_id_is_missing, app):
+    app.bills.missing_tweet_id.return_value = EXAMPLE_INTRODUCTIONS
+    mock_prev_tweet_id_is_missing.side_effect = [True, False]
 
-    tweet_introductions_expected_calls = [mock.call(i) for i in EXAMPLE_INTRODUCTIONS]
-    assert app.twitter_bot.tweet_introductions.call_count == 2
-    app.twitter_bot.tweet_introductions.assert_has_calls(tweet_introductions_expected_calls)
+    tweet(app.bills, app.twitter_bot)
 
-    insert_expected_calls = [mock.call(i) for i in EXAMPLE_INTRODUCTIONS]
-    assert app.bills.insert.call_count == 2
-    app.bills.insert.assert_has_calls(insert_expected_calls)
-
-
-def test_tweet_error(app):
-    app.twitter_bot.tweet_introductions.side_effect = [TwythonError('error'), None]
-    app.bills_api.return_value = EXAMPLE_INTRODUCTIONS
-    tweet(app.bills_api, app.query, app.bills, app.twitter_bot)
-
-    tweet_introductions_expected_calls = [mock.call(i) for i in EXAMPLE_INTRODUCTIONS]
-    assert app.twitter_bot.tweet_introductions.call_count == 2
-    app.twitter_bot.tweet_introductions.assert_has_calls(tweet_introductions_expected_calls)
-
-    assert app.bills.insert.call_count == 1
-    app.bills.insert.assert_called_with(EXAMPLE_INTRODUCTIONS[1])
+    assert app.bills.missing_tweet_id.call_count == 1
+    assert app.bills.get_prev_tweet_id.call_count == len(EXAMPLE_INTRODUCTIONS)
+    assert mock_new_thread.call_count == 1
+    assert mock_continue_thread.call_count == len(EXAMPLE_INTRODUCTIONS)
 
 
-def test_get_new_introductions(bills_api, bills_request_params, bills):
-    assert get_new_introductions(bills_api, bills_request_params, bills) == EXAMPLE_INTRODUCTIONS
+@patch('tweet.handler.prev_tweet_id_is_missing')
+@patch('tweet.handler.new_thread')
+@patch('tweet.handler.continue_thread')
+def test_tweet_cant_start_thread(mock_continue_thread, mock_new_thread, mock_prev_tweet_id_is_missing, app):
+    app.bills.missing_tweet_id.return_value = EXAMPLE_INTRODUCTIONS
+    mock_new_thread.return_value = None
+    mock_prev_tweet_id_is_missing.return_value = True
+
+    tweet(app.bills, app.twitter_bot)
+
+    assert app.bills.missing_tweet_id.call_count == 1
+    assert app.bills.get_prev_tweet_id.call_count == len(EXAMPLE_INTRODUCTIONS)
+    # keep trying to create new thread until succeed
+    assert mock_new_thread.call_count == 2
+    # continue_thread get called if can't create initial thread
+    assert mock_continue_thread.call_count == 0
 
 
-def test_get_new_introductions_filtering(bills_api, bills_request_params, bills):
-    bills.exists.side_effect = [False, True]
-    assert get_new_introductions(bills_api, bills_request_params, bills) == [EXAMPLE_INTRODUCTIONS[0]]
+def test_new_thread(app):
+    bill = mock.create_autospec(Bill)
+    app.twitter_bot.start_thread.return_value = SUCCESS_RESPONSE
+
+    prev_tweet_id = new_thread(bill, app.twitter_bot)
+
+    app.twitter_bot.start_thread.assert_called_with(bill)
+    assert app.twitter_bot.start_thread.call_count == 1
+    assert prev_tweet_id == SUCCESS_RESPONSE['id_str']
+
+
+def test_new_thread_error(app):
+    bill = mock.create_autospec(Bill)
+    app.twitter_bot.start_thread.return_value = Exception
+
+    prev_tweet_id = new_thread(bill, app.twitter_bot)
+
+    assert prev_tweet_id is None
+
+
+def test_continue_thread(app):
+    bill = mock.create_autospec(Bill)
+    prev_tweet_id = '123'
+    app.twitter_bot.tweet_introductions.return_value = SUCCESS_RESPONSE
+
+    continue_thread(bill, app.bills, prev_tweet_id, app.twitter_bot)
+
+    app.twitter_bot.tweet_introductions.assert_called_with(bill, prev_tweet_id)
+    assert bill.tweet_id == '123'
+    app.bills.insert.assert_called_with(bill)
+
+
+def test_continue_thread_error(app):
+    bill = mock.create_autospec(Bill)
+    prev_tweet_id = '123'
+    app.twitter_bot.tweet_introductions.side_effect = TwythonError('Error')
+
+    continue_thread(bill, app.bills, prev_tweet_id, app.twitter_bot)
+
+    assert app.bills.insert.call_count == 0

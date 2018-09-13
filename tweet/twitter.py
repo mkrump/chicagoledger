@@ -21,7 +21,7 @@ class TwitterBot:
         return (
             "{identifier}: {url} {classifications}\n{title}".format(
                 identifier=bill.identifier,
-                url=bill.legistar_url,
+                url=bill.generate_legistar_url(bill.identifier),
                 classifications=classifications,
                 title=bill.title)
         )
@@ -30,9 +30,13 @@ class TwitterBot:
         last_tweet = self.twitter_client.get_home_timeline(count=1)
         self.twitter_client.destroy_status(id=last_tweet[0]['id'])
 
-    def tweet_introductions(self, bill):
+    def start_thread(self, bill):
+        return self.twitter_client.update_status(
+            status='City Council Meeting: {}\nMayoral Introductions'.format(bill.date))
+
+    def tweet_introductions(self, bill, in_reply_to_status_id=None):
         tweet = self.format_tweets(bill)
-        return self.twitter_client.update_status(status=tweet)
+        return self.twitter_client.update_status(status=tweet, in_reply_to_status_id=in_reply_to_status_id)
 
     def format_tweets(self, bill):
         status = self.tweet_template(bill=bill)
@@ -50,6 +54,7 @@ class TwitterClient:
     def __init__(self, twitter_credentials):
         try:
             self.twitter_client = self.connect(twitter_credentials)
+            self.screen_name = self.twitter_client.verify_credentials()["screen_name"]
         except TwythonError as e:
             log.error(e)
 
@@ -58,5 +63,8 @@ class TwitterClient:
         return Twython(twitter_credentials.consumer_key, twitter_credentials.consumer_secret,
                        twitter_credentials.access_token, twitter_credentials.access_secret)
 
-    def update_status(self, status):
-        self.twitter_client.update_status(status=status)
+    def update_status(self, status, in_reply_to_status_id=None):
+        if in_reply_to_status_id is None:
+            return self.twitter_client.update_status(status=status)
+        tweet = '@{screen_name} {tweet}'.format(screen_name=self.screen_name, tweet=status)
+        return self.twitter_client.update_status(status=tweet, in_reply_to_status_id=in_reply_to_status_id)
