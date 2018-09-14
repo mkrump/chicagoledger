@@ -4,7 +4,7 @@ from twython import TwythonError
 
 from tweet.bills import Bills, Bill
 from tweet.handler import tweet, App, new_thread, continue_thread
-from tweet.tests.conftest import EXAMPLE_INTRODUCTIONS
+from tweet.conftest import EXAMPLE_INTRODUCTIONS
 from tweet.twitter import TwitterBot
 
 SUCCESS_RESPONSE = {'code': '200', 'id_str': '123'}

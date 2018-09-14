@@ -1,8 +1,8 @@
 from unittest.mock import patch
 
-from mock import create_autospec, call
+from mock import create_autospec
 
-from tweet.tests.conftest import EXAMPLE_INTRODUCTIONS
+from tweet.conftest import EXAMPLE_INTRODUCTIONS
 from tweet.twitter import TwitterClient, TwitterBot, TwitterCredentials, TWITTER_MAX_CHARS
 
 EXAMPLE_INTRODUCTION = EXAMPLE_INTRODUCTIONS[0]

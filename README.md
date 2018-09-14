@@ -37,6 +37,6 @@ https://github.com/serverless/serverless/blob/master/README.md#quick-start))
 ```
 pip-compile --output-file requirements/requirements-dev.txt requirements/requirements-dev.in
 pip install -r requirements/requirements-dev.txt 
-python -m pytest 
+pytest
 ```
 

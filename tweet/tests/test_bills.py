@@ -1,12 +1,9 @@
-import copy
-from decimal import Decimal
-
 import boto3
 import pytest
 from moto import mock_dynamodb2
 
 from tweet.bills import Bills, Bill, BillMapper
-from tweet.tests.conftest import EXAMPLE_INTRODUCTIONS
+from tweet.conftest import EXAMPLE_INTRODUCTIONS
 
 AttributeDefinitions = [
     {'AttributeName': 'identifier', 'AttributeType': 'S'},

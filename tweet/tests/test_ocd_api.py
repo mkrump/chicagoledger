@@ -3,13 +3,12 @@ from unittest.mock import patch
 from urllib.parse import urlparse, parse_qs
 
 import betamax
-import mock
 import pytest
 import requests
 from betamax_serializers import pretty_json
 
 from tweet.ocd_api import BillsAPI, BillsRequestParams, create_query
-from tweet.tests.conftest import EXPECTED_IDENTIFIER, EXPECTED_TITLE, EXPECTED_CLASSIFICATION, EXPECTED_OCD_ID, \
+from tweet.conftest import EXPECTED_IDENTIFIER, EXPECTED_TITLE, EXPECTED_CLASSIFICATION, EXPECTED_OCD_ID, \
     EXAMPLE_INTRODUCTIONS
 
 

@@ -13,11 +13,26 @@ EXAMPLE_INTRODUCTIONS = [
     Bill('O2098-1112', 'Dye the lake green everyday', ['ordinance'], 'ocd-bill/hash2', '10/27/18', '456'),
 ]
 
+
+# def pytest_collection_modifyitems(config, items):
+#     if 'slow' == config.getoption("markexpr"):
+#         # -m slow given in cli: do not skip slow tests
+#         return
+#     skip_slow = pytest.mark.skip(reason="need -m slow option to run")
+#     for item in items:
+#         if "slow" in item.keywords:
+#             item.add_marker(skip_slow)
+def pytest_addoption(parser):
+    parser.addoption(
+        "--runslow", action="store_true", default=False, help="run slow tests"
+    )
+
+
 def pytest_collection_modifyitems(config, items):
-    if 'slow' == config.getoption("markexpr"):
-        # -m slow given in cli: do not skip slow tests
+    if config.getoption("--runslow"):
+        # --runslow given in cli: do not skip slow tests
         return
-    skip_slow = pytest.mark.skip(reason="need -m slow option to run")
+    skip_slow = pytest.mark.skip(reason="need --runslow option to run")
     for item in items:
         if "slow" in item.keywords:
             item.add_marker(skip_slow)
