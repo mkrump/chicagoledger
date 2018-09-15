@@ -16,7 +16,7 @@ def test_tweet_introductions(mock_format_tweets):
     twitter_bot = TwitterBot(twitter_client)
     mock_format_tweets.return_value = TWEET
 
-    twitter_bot.tweet_introductions(EXAMPLE_INTRODUCTION)
+    twitter_bot.tweet_bill(EXAMPLE_INTRODUCTION)
 
     assert mock_format_tweets.call_count == 1
     assert twitter_client.update_status.call_count == 1

@@ -26,15 +26,11 @@ class TwitterBot:
                 title=bill.title)
         )
 
-    def delete_last_tweet(self):
-        last_tweet = self.twitter_client.get_home_timeline(count=1)
-        self.twitter_client.destroy_status(id=last_tweet[0]['id'])
-
-    def start_thread(self, bill):
+    def start_new_thread(self, bill):
         return self.twitter_client.update_status(
             status='City Council Meeting: {}\nMayoral Introductions'.format(bill.date))
 
-    def tweet_introductions(self, bill, in_reply_to_status_id=None):
+    def tweet_bill(self, bill, in_reply_to_status_id=None):
         tweet = self.format_tweets(bill)
         return self.twitter_client.update_status(status=tweet, in_reply_to_status_id=in_reply_to_status_id)
 
