@@ -4,9 +4,9 @@ import pytest
 from mock import mock, patch
 
 from tweet.bills import Bills
+from tweet.conftest import EXAMPLE_INTRODUCTIONS
 from tweet.ocd_api import BillsRequestParams, BillsAPI
 from tweet.query import get_new_introductions, filter_already_exists, filter_missing_date, save_introductions
-from tweet.conftest import EXAMPLE_INTRODUCTIONS
 
 
 @pytest.fixture

@@ -10,8 +10,6 @@ from tweet.config import APP_CONFIG
 from tweet.twitter import TwitterBot
 
 log = logging.getLogger(__name__)
-FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
-logging.basicConfig(format=FORMAT)
 
 App = namedtuple('App', 'bills, twitter_bot')
 
@@ -43,6 +41,9 @@ def tweet(bills, twitter_bot):
             # Don't tweet if don't succeed in starting new thread
             if prev_tweet_id is None:
                 continue
+            # TODO think about logic here can probably return dict above
+            # TODO and remove this step
+            prev_tweets[bill.date] = prev_tweet_id
         prev_tweets = continue_thread(bill, bills, prev_tweet_id, prev_tweets, twitter_bot)
     log.setLevel(logging.WARNING)
 
@@ -61,6 +62,7 @@ def start_new_thread(bill, twitter_bot):
     try:
         response = twitter_bot.start_new_thread(bill)
         log.info('handler.start_new_thread: first tweet: {}'.format(response))
+        log.info('handler.start_new_thread: tweet_id: {}'.format(response['id_str']))
         prev_tweet_id = response['id_str']
         return prev_tweet_id
     except Exception:
@@ -71,9 +73,11 @@ def start_new_thread(bill, twitter_bot):
 def continue_thread(bill, bills, prev_tweet_id, prev_tweets, twitter_bot):
     try:
         response = twitter_bot.tweet_bill(bill, in_reply_to_status_id=prev_tweet_id)
+        log.info('handler.continue_thread: tweet_id: {}'.format(response['id_str']))
         log.info('handler.continue_thread: response: {}'.format(response))
     except TwythonError as e:
-        log.error("handler.continue_thread: {} error: {}".format(e.error_code, e.msg))
+        log.error('handler.continue_thread: {} error: {}'.format(e.error_code, e.msg))
+        log.error(bill)
     else:
         bill.tweet_id = response['id_str']
         bills.insert(bill)

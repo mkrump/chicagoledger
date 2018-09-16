@@ -7,9 +7,9 @@ import pytest
 import requests
 from betamax_serializers import pretty_json
 
-from tweet.ocd_api import BillsAPI, BillsRequestParams, create_query
 from tweet.conftest import EXPECTED_IDENTIFIER, EXPECTED_TITLE, EXPECTED_CLASSIFICATION, EXPECTED_OCD_ID, \
     EXAMPLE_INTRODUCTIONS
+from tweet.ocd_api import BillsAPI, BillsRequestParams, create_query
 
 
 def get_url_and_params(full_url):

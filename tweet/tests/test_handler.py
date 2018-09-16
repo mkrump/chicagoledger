@@ -3,8 +3,8 @@ from mock import mock, patch
 from twython import TwythonError
 
 from tweet.bills import Bills, Bill
-from tweet.handler import tweet, App, start_new_thread, continue_thread, get_prev_tweet_id
 from tweet.conftest import EXAMPLE_INTRODUCTIONS
+from tweet.handler import tweet, App, start_new_thread, continue_thread, get_prev_tweet_id
 from tweet.twitter import TwitterBot
 
 SUCCESS_RESPONSE = {'code': '200', 'id_str': '123'}

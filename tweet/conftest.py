@@ -1,5 +1,6 @@
-from tweet.bills import Bill
 import pytest
+
+from tweet.bills import Bill
 
 EXPECTED_IDENTIFIER = 'O2018-6138'
 EXPECTED_TITLE = 'Fifty-fifth amending agreement with SomerCor 504, Inc. regarding Small Business Improvement Fund ' \
@@ -14,14 +15,6 @@ EXAMPLE_INTRODUCTIONS = [
 ]
 
 
-# def pytest_collection_modifyitems(config, items):
-#     if 'slow' == config.getoption("markexpr"):
-#         # -m slow given in cli: do not skip slow tests
-#         return
-#     skip_slow = pytest.mark.skip(reason="need -m slow option to run")
-#     for item in items:
-#         if "slow" in item.keywords:
-#             item.add_marker(skip_slow)
 def pytest_addoption(parser):
     parser.addoption(
         "--runslow", action="store_true", default=False, help="run slow tests"
