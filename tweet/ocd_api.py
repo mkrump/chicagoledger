@@ -1,4 +1,5 @@
 from collections import namedtuple
+from copy import copy
 
 from dateutil import relativedelta
 
@@ -30,6 +31,21 @@ class BillsAPI:
         for page in range(2, max_page + 1):
             next_page = self._call_bills_api(bills_request_params, page=page)
             yield next_page.json()
+
+    def get_intro_date(self, ocd_bill_id):
+        url = 'https://ocd.datamade.us/{ocd_bill_id}'.format(ocd_bill_id=ocd_bill_id)
+        response = self.session.get(url)
+        actions = response.json()['actions']
+        referral = [action for action in actions if action['description'] == 'Referred'][0]
+        return referral['date']
+
+    def add_bills_dates(self, bills):
+        updated_bills = []
+        for bill in bills:
+            updated_bill = copy(bill)
+            updated_bill.date = self.get_intro_date(bill.ocd_id)
+            updated_bills.append(updated_bill)
+        return updated_bills
 
     def get_bills(self, bills_request_params):
         bills = []

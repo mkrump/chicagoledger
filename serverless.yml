@@ -8,10 +8,11 @@ provider:
   iamRoleStatements:
   -  Effect: "Allow"
      Action:
+       - "dynamodb:Query"
        - "dynamodb:GetItem"
        - "dynamodb:PutItem"
        - "dynamodb:BatchWriteItem"
-     Resource: "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/bills"
+     Resource: "arn:aws:dynamodb:#{AWS::Region}:#{AWS::AccountId}:table/bills*"
   -  Effect: "Allow"
      Action:
        - "secretsmanager:GetSecretValue"
@@ -42,18 +43,48 @@ custom:
           Properties:
             TableName: bills
             AttributeDefinitions:
-              - AttributeName: bill_id
+              - AttributeName: identifier
                 AttributeType: S
+              - AttributeName: date
+                AttributeType: S
+              - AttributeName: tweet_id
+                AttributeType: N
             KeySchema:
-              - AttributeName: bill_id
+              - AttributeName: identifier
                 KeyType: HASH
             ProvisionedThroughput:
               ReadCapacityUnits: 5
               WriteCapacityUnits: 5
+            GlobalSecondaryIndexes:
+              - IndexName: date-index
+                KeySchema:
+                - AttributeName: date
+                  KeyType: HASH
+                - AttributeName: tweet_id
+                  KeyType: RANGE
+                Projection:
+                  ProjectionType: ALL
+                ProvisionedThroughput:
+                  ReadCapacityUnits: 5
+                  WriteCapacityUnits: 5
+              - IndexName: tweet_id-index
+                KeySchema:
+                - AttributeName: tweet_id
+                  KeyType: HASH
+                Projection:
+                  ProjectionType: ALL
+                ProvisionedThroughput:
+                  ReadCapacityUnits: 5
+                  WriteCapacityUnits: 5
 
 functions:
   tweet:
     handler: tweet/handler.call
     events:
       - schedule:
-          rate: rate(6 hours)
+          rate: rate(2 minutes)
+  query:
+    handler: tweet/query.call
+    events:
+      - schedule:
+          rate: rate(3 minutes)
