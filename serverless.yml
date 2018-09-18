@@ -82,9 +82,9 @@ functions:
     handler: tweet/handler.call
     events:
       - schedule:
-          rate: rate(2 minutes)
+          rate: rate(3 hours)
   query:
     handler: tweet/query.call
     events:
       - schedule:
-          rate: rate(3 minutes)
+          rate: rate(2 hours)
