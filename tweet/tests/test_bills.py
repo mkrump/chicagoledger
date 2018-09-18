@@ -77,7 +77,7 @@ def test_no_tweet(bills_table):
     combined_bills = no_tweet_id_bills + have_tweet_id_bills
     for bill in combined_bills:
         bills.insert(bill)
-    assert bills.missing_tweet_id() == no_tweet_id_bills
+    assert sorted(bills.missing_tweet_id(), key=lambda x: x.identifier) == no_tweet_id_bills
 
 
 # mocking framework doesn't seem to sort by sort index for GSI
