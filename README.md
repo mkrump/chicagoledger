@@ -1,4 +1,6 @@
-An AWS Lambda twitter bot that shares legislation introduced by Chicago mayor Rahm Emanuel
+An AWS Lambda twitter bot (https://twitter.com/chicagoledger) that shares legislation introduced by Chicago city council members. 
+The default settings share legislation introduced by current Chicago mayor Rahm Emanuel.
+
 
 ## Setup
 
@@ -15,6 +17,13 @@ https://github.com/serverless/serverless/blob/master/README.md#quick-start))
   "twitter-access-token": "",
   "twitter-access-secret": ""
 }
+```
+
+- Change the ocd-person in `config.py` to the member that you want to follow. 
+```python
+# DEFAULT
+# Rahm Emanuel -> https://ocd.datamade.us/ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca/
+PERSON = 'ocd-person/f649753d-081d-4f22-8dcf-3af71de0e6ca'
 ```
 
 ## Deploy
