@@ -1,3 +1,4 @@
+import datetime
 import logging
 from collections import namedtuple
 from copy import copy
@@ -6,7 +7,11 @@ from twython import Twython, TwythonError
 
 TWEET_TEMPLATE = '{title} {identifier} {url}'
 REPLY_TEMPLATE = '@{username} {tweet}'
-NEW_THREAD_TEMPLATE = 'City Council Meeting: {date}\nMayoral Introductions'
+NEW_THREAD_TEMPLATE = """Want to know what changes Rahm Emanuel wants to see in Chicago? Here’s each piece of legislation introduced by Chicago’s mayor at this month’s City Council session, {date}.
+
+I’m a public service bot from @city_bureau @CHIdocumenters
+
+Links lead to the full ordinance text!"""
 
 log = logging.getLogger(__name__)
 
@@ -36,7 +41,9 @@ class TwitterBot:
         return tweet
 
     def start_new_thread(self, bill):
-        tweet = NEW_THREAD_TEMPLATE.format(date=bill.date)
+        date = datetime.datetime.strptime(bill.date, '%Y-%m-%d').date()
+        date_string = date.strftime('%b. %d, %Y')
+        tweet = NEW_THREAD_TEMPLATE.format(date=date_string)
         return self.twitter_client.update_status(status=tweet)
 
     def tweet_bill(self, bill, in_reply_to_status_id=None):
