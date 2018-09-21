@@ -11,7 +11,7 @@ NEW_THREAD_TEMPLATE = """Want to know what changes Rahm Emanuel wants to see in 
 
 I’m a public service bot from @city_bureau @CHIdocumenters
 
-Links lead to the full ordinance text!"""
+Links download full ordinance text!"""
 
 log = logging.getLogger(__name__)
 
