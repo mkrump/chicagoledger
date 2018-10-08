@@ -1,4 +1,6 @@
-An AWS Lambda twitter bot (https://twitter.com/chicagoledger) that shares legislation introduced by Chicago city council members. 
+**This now being managed from the City Bureau repo** The new location is https://github.com/City-Bureau/chicagoledger
+
+An AWS Lambda twitter bot that shares legislation introduced by Chicago city council members. 
 The default settings share legislation introduced by current Chicago mayor Rahm Emanuel.
 
 
